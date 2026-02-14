@@ -231,7 +231,7 @@ class HexBoard:
             Multi-line string showing the board state
         """
         lines = []
-        lines.append("  " + " ".join(chr(65 + i) for i in range(self.size)))
+        lines.append("  " + " ".join(str(i) for i in range(self.size)))
 
         for row in range(self.size):
             indent = " " * row
