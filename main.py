@@ -31,7 +31,8 @@ Examples:
   python main.py --blue-subprocess "java Agent"           # Human vs Java AI
   python main.py --red-subprocess "python3 agent1.py" --blue-subprocess "python3 agent2.py"  # AI vs AI
   python main.py --no-stats                               # Hide player stats
-  python main.py --show-full-log                          # Show complete log at end
+  # Show complete log at end
+  python main.py --show-full-log
         """
     )
 
@@ -82,6 +83,14 @@ Examples:
     )
 
     parser.add_argument(
+        '--memory-limit',
+        type=float,
+        default=None,
+        metavar='MB',
+        help='Memory limit for subprocess players in MB (default: no limit)'
+    )
+
+    parser.add_argument(
         '--no-stats',
         action='store_true',
         help='Hide player statistics during game'
@@ -102,7 +111,7 @@ Examples:
     return parser.parse_args()
 
 
-def create_player(color: Color, name: str, subprocess_cmd: Optional[str], timeout: float):
+def create_player(color: Color, name: str, subprocess_cmd: Optional[str], timeout: float, memory_limit_mb: Optional[float]):
     """
     Create a player (either Terminal or Subprocess).
 
@@ -111,6 +120,7 @@ def create_player(color: Color, name: str, subprocess_cmd: Optional[str], timeou
         name: Player name
         subprocess_cmd: Command to run subprocess (None for terminal player)
         timeout: Timeout for subprocess players
+        memory_limit_mb: Memory limit in MB for subprocess players
 
     Returns:
         Player instance
@@ -127,6 +137,7 @@ def create_player(color: Color, name: str, subprocess_cmd: Optional[str], timeou
             program_path=program,
             args=args,
             timeout=timeout,
+            memory_limit_mb=memory_limit_mb,
             name=name
         )
         return player
@@ -157,14 +168,18 @@ def main():
         Color.RED,
         args.red_name,
         args.red_subprocess,
-        args.timeout
+        args.timeout,
+        args.memory_limit
     )
     blue_player = create_player(
         Color.BLUE,
         args.blue_name,
         args.blue_subprocess,
-        args.timeout
+        args.timeout,
+        args.memory_limit
     )
+    #     args.timeout
+    # )
 
     # Track if we have subprocess players for cleanup
     subprocess_players = []

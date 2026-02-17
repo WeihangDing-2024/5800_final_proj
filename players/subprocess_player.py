@@ -29,12 +29,14 @@ class SubprocessPlayer(Player):
     """
 
     DEFAULT_TIMEOUT = 5.0  # seconds
+    DEFAULT_MEMORY_LIMIT_MB = 512.0  # MB
 
     def __init__(self,
                  color: Color,
                  program_path: str,
                  args: Optional[List[str]] = None,
                  timeout: float = DEFAULT_TIMEOUT,
+                 memory_limit_mb: Optional[float] = None,
                  name: Optional[str] = None):
         """
         Initialize subprocess player.
@@ -44,6 +46,7 @@ class SubprocessPlayer(Player):
             program_path: Path to executable (e.g., 'python3', 'java', './agent')
             args: Additional arguments (e.g., ['student_agent.py'] for Python)
             timeout: Timeout in seconds for each move
+            memory_limit_mb: Memory limit in MB (None for no limit)
             name: Display name (defaults to program name)
         """
         # Generate name from program
@@ -58,7 +61,12 @@ class SubprocessPlayer(Player):
         self.program_path = program_path
         self.args = args or []
         self.timeout = timeout
+        self.memory_limit_mb = memory_limit_mb
         self.process = None
+
+        # Memory monitoring
+        self.current_memory_mb = 0.0
+        self.peak_memory_mb = 0.0
 
     def initialize(self, board_size: int) -> bool:
         """
@@ -136,6 +144,13 @@ class SubprocessPlayer(Player):
             # Read response with timeout
             response = self._read_line_with_timeout(self.timeout)
 
+            # Update memory statistics
+            self._update_memory_stats()
+
+            # Check memory limit
+            if self._check_memory_limit():
+                return None
+
             if response is None:
                 # Timeout or EOF
                 stderr_output = self._get_stderr()
@@ -199,6 +214,54 @@ class SubprocessPlayer(Player):
             return True
         return self.process.poll() is not None
 
+    def _get_memory_mb(self) -> Optional[float]:
+        """Get current memory usage in MB from /proc."""
+        if self.process is None or self._is_dead():
+            return None
+
+        try:
+            # Read from /proc/<pid>/status
+            with open(f'/proc/{self.process.pid}/status', 'r') as f:
+                for line in f:
+                    if line.startswith('VmRSS:'):
+                        # VmRSS is in kB, convert to MB
+                        kb = int(line.split()[1])
+                        return kb / 1024.0
+        except (FileNotFoundError, ValueError, PermissionError, IOError):
+            # /proc not available or process died
+            return None
+
+        return None
+
+    def _update_memory_stats(self):
+        """Update current and peak memory usage."""
+        mem = self._get_memory_mb()
+        if mem is not None:
+            self.current_memory_mb = mem
+            if mem > self.peak_memory_mb:
+                self.peak_memory_mb = mem
+
+    def _check_memory_limit(self) -> bool:
+        """Check if memory limit exceeded and kill process if so.
+
+        Returns:
+            True if limit exceeded and process was killed, False otherwise
+        """
+        if self.memory_limit_mb is None:
+            return False
+
+        if self.current_memory_mb > self.memory_limit_mb:
+            print(
+                f"{self.name} exceeded memory limit ({self.current_memory_mb:.2f} MB > {self.memory_limit_mb:.2f} MB), terminating process...")
+            try:
+                self.process.kill()
+                self.process.wait(timeout=1.0)
+            except Exception:
+                pass
+            return True
+
+        return False
+
     def _read_line_with_timeout(self, timeout: float) -> Optional[str]:
         """
         Read a line from subprocess stdout with timeout.
@@ -249,6 +312,15 @@ class SubprocessPlayer(Player):
             except:
                 return ""
         return ""
+
+    def get_memory_stats(self) -> Tuple[float, float]:
+        """
+        Get memory statistics for this subprocess.
+
+        Returns:
+            Tuple of (current_memory_mb, peak_memory_mb)
+        """
+        return (self.current_memory_mb, self.peak_memory_mb)
 
     def __repr__(self) -> str:
         cmd = f"{self.program_path} {' '.join(self.args)}"
