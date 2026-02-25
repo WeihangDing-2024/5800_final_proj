@@ -314,15 +314,6 @@ class SubprocessPlayer(Player):
                 return ""
         return ""
 
-    def get_memory_stats(self) -> Tuple[float, float]:
-        """
-        Get memory statistics for this subprocess.
-
-        Returns:
-            Tuple of (current_memory_mb, peak_memory_mb)
-        """
-        return (self.current_memory_mb, self.peak_memory_mb)
-
     def __repr__(self) -> str:
         cmd = f"{self.program_path} {' '.join(self.args)}"
         return f"<SubprocessPlayer name={self.name} command='{cmd}' color={self.color.name}>"

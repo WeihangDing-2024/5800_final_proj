@@ -36,7 +36,6 @@ class HexBoardCanvas:
         self.hex_radius = 25  # Default, will be recalculated dynamically
         self.cells = {}  # (row, col) -> hex_id mapping
         self.cell_coords = {}  # hex_id -> (row, col) reverse mapping
-        self.hover_hex = None  # Currently hovered hex
 
     def calculate_optimal_hex_radius(self):
         """Calculate optimal hex radius based on current canvas size."""
@@ -471,7 +470,8 @@ class TkinterView:
         if recent_count is None:
             recent_events = self.controller.events if self.controller.events else []
         else:
-            recent_events = self.controller.events[-recent_count:] if self.controller.events else []
+            recent_events = self.controller.events[-recent_count:
+                                                   ] if self.controller.events else []
 
         for event in recent_events:
             timestamp = datetime.fromtimestamp(

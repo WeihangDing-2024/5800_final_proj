@@ -27,7 +27,6 @@ class GUIPlayer(Player):
             name: Display name
         """
         super().__init__(color, name)
-        self.board_size = None
         self.pending_move = None
         self.waiting_for_move = False
 
@@ -41,7 +40,6 @@ class GUIPlayer(Player):
         Returns:
             True (always succeeds)
         """
-        self.board_size = board_size
         return True
 
     def get_move(self, board: HexBoard) -> Union[Tuple[int, int], str, None]:
@@ -87,6 +85,3 @@ class GUIPlayer(Player):
     def is_waiting(self) -> bool:
         """Check if player is currently waiting for input."""
         return self.waiting_for_move
-
-    def __str__(self) -> str:
-        return f"{self.name} ({self.color.name}) [GUI]"

@@ -44,23 +44,20 @@ class MoveResult(Enum):
     INVALID_FORMAT = "invalid_format"
     OUT_OF_BOUNDS = "out_of_bounds"
     CELL_OCCUPIED = "cell_occupied"
-    WRONG_TURN = "wrong_turn"
-    GAME_OVER = "game_over"
     SWAP_NOT_ALLOWED = "swap_not_allowed"
 
     def __str__(self):
         return self.value
 
 
-# Default board sizes
+# Board size constants
 DEFAULT_BOARD_SIZE = 11
 MIN_BOARD_SIZE = 3
 MAX_BOARD_SIZE = 26
 
-# Resource limits (defaults)
-DEFAULT_TIME_LIMIT = 5.0  # seconds per move (wall time)
-DEFAULT_CPU_LIMIT = 5.0   # seconds per move (CPU time)
-DEFAULT_MEMORY_LIMIT = 512  # MB
+# Subprocess player defaults
+DEFAULT_TIMEOUT = 1.0  # seconds per move
+DEFAULT_MEMORY_LIMIT = 32  # MB
 
 # Hex directions (6 neighbors in hex grid)
 # For coordinate system where row increases down, col increases right

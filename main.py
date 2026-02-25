@@ -12,7 +12,7 @@ import sys
 import argparse
 from typing import Optional
 from engine.game import GameController
-from engine.constants import Color, DEFAULT_BOARD_SIZE
+from engine.constants import Color, DEFAULT_BOARD_SIZE, DEFAULT_TIMEOUT, MIN_BOARD_SIZE, MAX_BOARD_SIZE
 from players.terminal_player import TerminalPlayer
 from players.subprocess_player import SubprocessPlayer
 from view.terminal_view import TerminalView
@@ -77,9 +77,9 @@ Examples:
     parser.add_argument(
         '--timeout',
         type=float,
-        default=5.0,
+        default=DEFAULT_TIMEOUT,
         metavar='SECONDS',
-        help='Timeout for subprocess players in seconds (default: 5.0)'
+        help=f'Timeout for subprocess players in seconds (default: {DEFAULT_TIMEOUT})'
     )
 
     parser.add_argument(
@@ -151,8 +151,8 @@ def main():
     args = parse_arguments()
 
     # Validate board size
-    if args.board_size < 3 or args.board_size > 26:
-        print("Error: Board size must be between 3 and 26")
+    if args.board_size < MIN_BOARD_SIZE or args.board_size > MAX_BOARD_SIZE:
+        print(f"Error: Board size must be between {MIN_BOARD_SIZE} and {MAX_BOARD_SIZE}")
         sys.exit(1)
 
     print("=" * 70)
@@ -178,8 +178,6 @@ def main():
         args.timeout,
         args.memory_limit
     )
-    #     args.timeout
-    # )
 
     # Track if we have subprocess players for cleanup
     subprocess_players = []

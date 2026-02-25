@@ -22,14 +22,10 @@ class LogLevel(Enum):
 class GameEvent:
     """Represents a game event for logging."""
 
-    def __init__(self, level: LogLevel, message: str, **kwargs):
+    def __init__(self, level: LogLevel, message: str):
         self.timestamp = time.time()
         self.level = level
         self.message = message
-        self.data = kwargs
-
-    def __str__(self):
-        return f"[{self.level.value.upper()}] {self.message}"
 
 
 class GameController:
@@ -75,9 +71,9 @@ class GameController:
         self.events: List[GameEvent] = []
         self.move_history: List[Dict[str, Any]] = []
 
-    def log_event(self, level: LogLevel, message: str, **kwargs):
+    def log_event(self, level: LogLevel, message: str):
         """Log a game event."""
-        event = GameEvent(level, message, **kwargs)
+        event = GameEvent(level, message)
         self.events.append(event)
 
     def start_game(self, red_player, blue_player) -> bool:
@@ -111,8 +107,7 @@ class GameController:
         self.current_player = red_player
 
         self.log_event(LogLevel.INFO,
-                       f"Game started - {red_player.name} vs {blue_player.name}",
-                       board_size=self.board_size)
+                       f"Game started - {red_player.name} vs {blue_player.name}")
 
         return True
 
@@ -130,10 +125,7 @@ class GameController:
         player = self.current_player
 
         self.log_event(LogLevel.INFO,
-                       f"Turn {self.current_turn}: {player.name}'s turn",
-                       turn=self.current_turn,
-                       player=player.name,
-                       color=player.color.name)
+                       f"Turn {self.current_turn}: {player.name}'s turn")
 
         # Try to get a valid move with retries
         move = self._get_valid_move(player)
@@ -150,25 +142,20 @@ class GameController:
             if result != MoveResult.SUCCESS:
                 # Swap not allowed
                 self.log_event(LogLevel.ERROR,
-                               f"Swap move not allowed: {result.value}",
-                               player=player.name)
+                               f"Swap move not allowed: {result.value}")
                 self._record_error(player)
                 self._handle_forfeit(player)
                 return False
 
             # Log successful swap
             self.log_event(LogLevel.INFO,
-                           f"{player.name} executed swap move",
-                           player=player.name,
-                           move="swap",
-                           turn=self.current_turn)
+                           f"{player.name} executed swap move")
 
             self.move_history.append({
                 'turn': self.current_turn,
                 'player': player.name,
                 'color': player.color.name,
-                'move': 'swap',
-                'timestamp': time.time()
+                'move': 'swap'
             })
         else:
             # Normal move
@@ -180,35 +167,24 @@ class GameController:
             if result != MoveResult.SUCCESS:
                 # This shouldn't happen, but handle it
                 self.log_event(LogLevel.ERROR,
-                               f"Unexpected move validation failure: {result.value}",
-                               player=player.name,
-                               move=move)
+                               f"Unexpected move validation failure: {result.value}")
                 self._handle_forfeit(player)
                 return False
 
             # Log successful move
             self.log_event(LogLevel.INFO,
-                           f"{player.name} played {move}",
-                           player=player.name,
-                           move=move,
-                           turn=self.current_turn)
+                           f"{player.name} played {move}")
 
             self.move_history.append({
                 'turn': self.current_turn,
                 'player': player.name,
                 'color': player.color.name,
-                'move': move,
-                'timestamp': time.time()
+                'move': move
             })
 
         # Check for win
         if self.board.check_win(player.color):
             self._handle_win(player)
-            return False
-
-        # Check for draw (board full - shouldn't happen in Hex)
-        if self.board.is_full():
-            self._handle_draw()
             return False
 
         # Switch to next player
@@ -232,16 +208,13 @@ class GameController:
                 move = player.get_move(self.board)
             except Exception as e:
                 self.log_event(LogLevel.ERROR,
-                               f"{player.name} crashed: {e}",
-                               player=player.name,
-                               error=str(e))
+                               f"{player.name} crashed: {e}")
                 self._record_error(player)
                 return None
 
             if move is None:
                 self.log_event(LogLevel.ERROR,
-                               f"{player.name} returned None (forfeit)",
-                               player=player.name)
+                               f"{player.name} returned None (forfeit)")
                 return None
 
             # Check if it's a swap move
@@ -268,23 +241,17 @@ class GameController:
 
             self.log_event(LogLevel.WARNING,
                            f"{player.name} invalid move {move}: {validation_result.value} "
-                           f"(attempt {attempt}/{self.MAX_INVALID_MOVES})",
-                           player=player.name,
-                           move=move,
-                           reason=validation_result.value,
-                           attempt=attempt)
+                           f"(attempt {attempt}/{self.MAX_INVALID_MOVES})")
 
             # Check if player exceeded total error limit
             if self.player_errors[player.color] >= self.MAX_TOTAL_ERRORS:
                 self.log_event(LogLevel.CRITICAL,
-                               f"{player.name} exceeded maximum total errors",
-                               player=player.name)
+                               f"{player.name} exceeded maximum total errors")
                 return None
 
         # Exceeded retry limit
         self.log_event(LogLevel.ERROR,
-                       f"{player.name} exceeded maximum invalid moves per turn",
-                       player=player.name)
+                       f"{player.name} exceeded maximum invalid moves per turn")
         return None
 
     def _validate_move(self, row: int, col: int) -> MoveResult:
@@ -308,9 +275,7 @@ class GameController:
         self.winner = opponent.color
 
         self.log_event(LogLevel.CRITICAL,
-                       f"{player.name} FORFEITED - {opponent.name} wins",
-                       winner=opponent.name,
-                       loser=player.name)
+                       f"{player.name} FORFEITED - {opponent.name} wins")
 
     def _handle_win(self, player):
         """Handle player victory."""
@@ -318,14 +283,7 @@ class GameController:
         self.winner = player.color
 
         self.log_event(LogLevel.INFO,
-                       f"{player.name} WINS!",
-                       winner=player.name,
-                       turns=self.current_turn)
-
-    def _handle_draw(self):
-        """Handle draw (shouldn't happen in Hex)."""
-        self.status = GameStatus.DRAW
-        self.log_event(LogLevel.INFO, "Game ended in draw")
+                       f"{player.name} WINS!")
 
     def _switch_player(self):
         """Switch to the other player."""

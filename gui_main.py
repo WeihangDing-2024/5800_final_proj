@@ -8,7 +8,7 @@ Launches the Hex game with a graphical tkinter interface.
 import sys
 import argparse
 from engine.game import GameController
-from engine.constants import Color, GameStatus, DEFAULT_BOARD_SIZE
+from engine.constants import Color, GameStatus, DEFAULT_BOARD_SIZE, DEFAULT_TIMEOUT, DEFAULT_MEMORY_LIMIT, MIN_BOARD_SIZE, MAX_BOARD_SIZE
 from players.gui_player import GUIPlayer
 from players.subprocess_player import SubprocessPlayer
 from view.tkinter_view import TkinterView
@@ -70,17 +70,17 @@ Examples:
     parser.add_argument(
         '--timeout',
         type=float,
-        default=5.0,
+        default=DEFAULT_TIMEOUT,
         metavar='SECONDS',
-        help='Timeout for subprocess players (default: 5.0)'
+        help=f'Timeout for subprocess players (default: {DEFAULT_TIMEOUT})'
     )
 
     parser.add_argument(
         '--memory-limit',
         type=int,
-        default=512,
+        default=DEFAULT_MEMORY_LIMIT,
         metavar='MB',
-        help='Memory limit for subprocess players in MB (default: 512)'
+        help=f'Memory limit for subprocess players in MB (default: {DEFAULT_MEMORY_LIMIT})'
     )
 
     return parser.parse_args()
@@ -91,8 +91,8 @@ def main():
     args = parse_arguments()
 
     # Validate board size
-    if args.board_size < 3 or args.board_size > 26:
-        print("Error: Board size must be between 3 and 26")
+    if args.board_size < MIN_BOARD_SIZE or args.board_size > MAX_BOARD_SIZE:
+        print(f"Error: Board size must be between {MIN_BOARD_SIZE} and {MAX_BOARD_SIZE}")
         sys.exit(1)
 
     # Create game controller

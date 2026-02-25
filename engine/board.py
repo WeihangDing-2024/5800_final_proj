@@ -3,8 +3,8 @@ Hex board representation, move validation, and win detection.
 """
 
 from collections import deque
-from typing import Optional, Set, Tuple, List
-from .constants import Color, MoveResult, HEX_DIRECTIONS, DEFAULT_BOARD_SIZE
+from typing import Optional, Tuple, List
+from .constants import Color, MoveResult, HEX_DIRECTIONS, DEFAULT_BOARD_SIZE, MIN_BOARD_SIZE, MAX_BOARD_SIZE
 
 
 class HexBoard:
@@ -25,10 +25,10 @@ class HexBoard:
         Args:
             size: Board dimension (size x size)
         """
-        if size < 3:
-            raise ValueError("Board size must be at least 3")
-        if size > 26:
-            raise ValueError("Board size must be at most 26")
+        if size < MIN_BOARD_SIZE:
+            raise ValueError(f"Board size must be at least {MIN_BOARD_SIZE}")
+        if size > MAX_BOARD_SIZE:
+            raise ValueError(f"Board size must be at most {MAX_BOARD_SIZE}")
 
         self.size = size
         # Store board state as dict: (row, col) -> Color
@@ -128,20 +128,6 @@ class HexBoard:
 
         return MoveResult.SUCCESS
 
-    def undo_move(self) -> bool:
-        """
-        Undo the last move.
-
-        Returns:
-            True if a move was undone, False if no moves to undo
-        """
-        if not self.move_history:
-            return False
-
-        row, col, _ = self.move_history.pop()
-        self.board[(row, col)] = Color.EMPTY
-        return True
-
     def get_neighbors(self, row: int, col: int) -> List[Tuple[int, int]]:
         """
         Get valid neighboring positions.
@@ -238,19 +224,6 @@ class HexBoard:
 
         return False
 
-    def get_winner(self) -> Optional[Color]:
-        """
-        Check if there is a winner.
-
-        Returns:
-            Color.RED or Color.BLUE if that color won, None otherwise
-        """
-        if self.check_win(Color.RED):
-            return Color.RED
-        if self.check_win(Color.BLUE):
-            return Color.BLUE
-        return None
-
     def is_full(self) -> bool:
         """Check if the board is completely filled."""
         return all(cell != Color.EMPTY for cell in self.board.values())
@@ -263,14 +236,6 @@ class HexBoard:
     def get_move_count(self) -> int:
         """Get the total number of moves made."""
         return len(self.move_history)
-
-    def clone(self) -> 'HexBoard':
-        """Create a deep copy of the board."""
-        new_board = HexBoard(self.size)
-        new_board.board = self.board.copy()
-        new_board.move_history = self.move_history.copy()
-        new_board.swap_used = self.swap_used
-        return new_board
 
     def to_string(self) -> str:
         """
@@ -301,44 +266,3 @@ class HexBoard:
 
     def __str__(self) -> str:
         return self.to_string()
-
-    def to_dict(self) -> dict:
-        """
-        Export board state as dictionary for serialization.
-
-        Returns:
-            Dictionary containing board state
-        """
-        return {
-            'size': self.size,
-            'board': {f"{r},{c}": cell.value for (r, c), cell in self.board.items()},
-            'move_history': [(r, c, color.value) for r, c, color in self.move_history],
-            'swap_used': self.swap_used
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict) -> 'HexBoard':
-        """
-        Create a board from dictionary representation.
-
-        Args:
-            data: Dictionary containing board state
-
-        Returns:
-            HexBoard instance
-        """
-        board = cls(data['size'])
-
-        # Restore board state
-        for pos_str, color_value in data['board'].items():
-            r, c = map(int, pos_str.split(','))
-            board.board[(r, c)] = Color(color_value)
-
-        # Restore move history
-        board.move_history = [(r, c, Color(color_value))
-                              for r, c, color_value in data['move_history']]
-
-        # Restore swap_used flag (default to False for backward compatibility)
-        board.swap_used = data.get('swap_used', False)
-
-        return board

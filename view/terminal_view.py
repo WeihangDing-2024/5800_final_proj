@@ -4,7 +4,6 @@ Terminal-based view for Hex game.
 Displays game state, moves, and logs in the terminal.
 """
 
-import time
 from datetime import datetime
 from typing import List
 from engine.board import HexBoard

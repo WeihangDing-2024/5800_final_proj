@@ -27,7 +27,6 @@ class TerminalPlayer(Player):
             name: Display name
         """
         super().__init__(color, name)
-        self.board_size = None
 
     def initialize(self, board_size: int) -> bool:
         """
@@ -39,7 +38,6 @@ class TerminalPlayer(Player):
         Returns:
             True (always succeeds)
         """
-        self.board_size = board_size
         print(f"\n{'='*60}")
         print(f"  {self.name} initialized")
         print(f"  Color: {self.color.name}")
