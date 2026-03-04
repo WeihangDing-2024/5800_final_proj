@@ -530,28 +530,9 @@ All flags (`--board-size`, `--timeout`, `--memory-limit`, `--red-subprocess`, `-
 
 ---
 
-## 8. Constraints & Limits (TBD)
+## 8. Constraints & Limits
 
-Your agent must operate within strict resource limits:
-
-### Board Size
-Board Size is likely to be 19x19.
-
-### Time Limit: 1.0 Second Per Move
-
-- You have **1 second** (wall-clock time) to output each move
-- This includes all computation and I/O
-- **Exceeding the limit results in automatic forfeit**
-
-### Memory Limit: 128 MB
-
-- Your process can use up to **128 MB** of RAM (RSS)
-- This includes:
-  - Your program code
-  - Stack memory
-  - Heap allocations
-  - All data structures
-- **Exceeding the limit results in automatic forfeit**
+The time/ memory limitation on different board size is still under testing. Please make sure your algorithm can work under different board sizes without too much time/ memory usage.
 
 ---
 
