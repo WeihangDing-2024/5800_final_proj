@@ -12,7 +12,9 @@ from .constants import (
     MAX_BOARD_SIZE,
     DEFAULT_TIMEOUT,
     DEFAULT_MEMORY_LIMIT,
-    HEX_DIRECTIONS
+    HEX_DIRECTIONS,
+    BOARD_SIZE_TIMEOUTS,
+    get_timeout_for_board_size
 )
 from .protocol import Protocol, ProtocolError
 
@@ -27,6 +29,8 @@ __all__ = [
     'DEFAULT_TIMEOUT',
     'DEFAULT_MEMORY_LIMIT',
     'HEX_DIRECTIONS',
+    'BOARD_SIZE_TIMEOUTS',
+    'get_timeout_for_board_size',
     'Protocol',
     'ProtocolError'
 ]

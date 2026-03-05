@@ -57,7 +57,30 @@ MAX_BOARD_SIZE = 26
 
 # Subprocess player defaults
 DEFAULT_TIMEOUT = 1.0  # seconds per move
-DEFAULT_MEMORY_LIMIT = 128  # MB
+DEFAULT_MEMORY_LIMIT = 64  # MB
+
+# Board-size-specific time limits (in seconds)
+BOARD_SIZE_TIMEOUTS = {
+    11: 0.15,  # 150 ms
+    15: 0.20,  # 200 ms
+    19: 0.25,  # 250 ms
+    21: 0.30,  # 300 ms
+}
+
+
+def get_timeout_for_board_size(board_size: int) -> float:
+    """
+    Get the appropriate timeout for a given board size.
+
+    Args:
+        board_size: The size of the board
+
+    Returns:
+        Timeout in seconds. Returns the mapped value if available,
+        otherwise returns DEFAULT_TIMEOUT.
+    """
+    return BOARD_SIZE_TIMEOUTS.get(board_size, DEFAULT_TIMEOUT)
+
 
 # Hex directions (6 neighbors in hex grid)
 # For coordinate system where row increases down, col increases right

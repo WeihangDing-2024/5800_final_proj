@@ -12,7 +12,7 @@ import sys
 import argparse
 from typing import Optional
 from engine.game import GameController
-from engine.constants import Color, DEFAULT_BOARD_SIZE, DEFAULT_TIMEOUT, MIN_BOARD_SIZE, MAX_BOARD_SIZE
+from engine.constants import Color, DEFAULT_BOARD_SIZE, DEFAULT_TIMEOUT, MIN_BOARD_SIZE, MAX_BOARD_SIZE, get_timeout_for_board_size
 from players.terminal_player import TerminalPlayer
 from players.subprocess_player import SubprocessPlayer
 from view.terminal_view import TerminalView
@@ -77,9 +77,9 @@ Examples:
     parser.add_argument(
         '--timeout',
         type=float,
-        default=DEFAULT_TIMEOUT,
+        default=None,
         metavar='SECONDS',
-        help=f'Timeout for subprocess players in seconds (default: {DEFAULT_TIMEOUT})'
+        help='Timeout for subprocess players in seconds (default: auto-selected based on board size)'
     )
 
     parser.add_argument(
@@ -163,6 +163,10 @@ def main():
     print("=" * 70)
     print()
 
+    # Determine timeout: use explicit value if provided, otherwise use board-size-specific timeout
+    timeout = args.timeout if args.timeout is not None else get_timeout_for_board_size(
+        args.board_size)
+
     # Create game controller
     game = GameController(board_size=args.board_size)
 
@@ -176,7 +180,7 @@ def main():
         Color.RED,
         args.red_name,
         args.red_subprocess,
-        args.timeout,
+        timeout,
         args.memory_limit,
         stderr_callback=stderr_callback
     )
@@ -184,7 +188,7 @@ def main():
         Color.BLUE,
         args.blue_name,
         args.blue_subprocess,
-        args.timeout,
+        timeout,
         args.memory_limit,
         stderr_callback=stderr_callback
     )

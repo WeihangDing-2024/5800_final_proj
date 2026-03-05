@@ -8,7 +8,7 @@ Launches the Hex game with a graphical tkinter interface.
 import sys
 import argparse
 from engine.game import GameController
-from engine.constants import Color, GameStatus, DEFAULT_BOARD_SIZE, DEFAULT_TIMEOUT, DEFAULT_MEMORY_LIMIT, MIN_BOARD_SIZE, MAX_BOARD_SIZE
+from engine.constants import Color, GameStatus, DEFAULT_BOARD_SIZE, DEFAULT_TIMEOUT, DEFAULT_MEMORY_LIMIT, MIN_BOARD_SIZE, MAX_BOARD_SIZE, get_timeout_for_board_size
 from players.gui_player import GUIPlayer
 from players.subprocess_player import SubprocessPlayer
 from view.tkinter_view import TkinterView
@@ -70,9 +70,9 @@ Examples:
     parser.add_argument(
         '--timeout',
         type=float,
-        default=DEFAULT_TIMEOUT,
+        default=None,
         metavar='SECONDS',
-        help=f'Timeout for subprocess players (default: {DEFAULT_TIMEOUT})'
+        help='Timeout for subprocess players in seconds (default: auto-selected based on board size)'
     )
 
     parser.add_argument(
@@ -89,6 +89,10 @@ Examples:
 def run_game(args, view=None, is_first_run=True):
     """Run a game with given arguments."""
     # If view is provided, we're replaying; otherwise create new view
+
+    # Determine timeout: use explicit value if provided, otherwise use board-size-specific timeout
+    timeout = args.timeout if args.timeout is not None else get_timeout_for_board_size(
+        args.board_size)
 
     # Create game controller
     game = GameController(board_size=args.board_size)
@@ -108,7 +112,7 @@ def run_game(args, view=None, is_first_run=True):
             color=Color.RED,
             program_path=program,
             args=prog_args,
-            timeout=args.timeout,
+            timeout=timeout,
             memory_limit_mb=args.memory_limit,
             name=args.red_name,
             stderr_callback=stderr_callback
@@ -125,7 +129,7 @@ def run_game(args, view=None, is_first_run=True):
             color=Color.BLUE,
             program_path=program,
             args=prog_args,
-            timeout=args.timeout,
+            timeout=timeout,
             memory_limit_mb=args.memory_limit,
             name=args.blue_name,
             stderr_callback=stderr_callback

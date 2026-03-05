@@ -496,7 +496,7 @@ python3 gui_main.py --blue-subprocess "java -cp ./examples/java RandomAgent"
 | Option | Description | Default |
 |--------|-------------|---------|
 | `--board-size N` | Set board size (3-26) | 11 |
-| `--timeout SECONDS` | Time limit per move | 1.0 |
+| `--timeout SECONDS` | Time limit per move (overrides auto-selection) | Auto (based on board size) |
 | `--memory-limit MB` | Memory limit in MB | 128 |
 | `--red-subprocess "CMD"` | Command to run RED agent | Human (GUI) |
 | `--blue-subprocess "CMD"` | Command to run BLUE agent | Human (GUI) |
@@ -532,18 +532,36 @@ All flags (`--board-size`, `--timeout`, `--memory-limit`, `--red-subprocess`, `-
 
 ## 8. Constraints & Limits
 
-The time/ memory limitation on different boards ize is still under testing. Please make sure your algorithm can work under different board sizes without too much time/ memory usage.
+The framework automatically applies different time limits based on board size. When you run the game with a specific board size, the appropriate time limit is automatically enforced.
 
-Time per move:
-11×11: 150 ms
-15×15: 200 ms
-19×19: 250 ms
-21×21: 300 ms
+**Automatic Time Limits:**
+| Board Size | Time limit |
+| --- | --- |
+11×11 | 150 ms
+15×15 | 200 ms
+19×19 | 250 ms
+21×21 | 300 ms
 
-Memory
-All sizes: 64 MB
+**Note:** For board sizes not listed above, the framework uses a default timeout of 1.0 second.
 
-**Please use the flag system to change the boardsize and limitations on time & memory.**
+**Memory Limit:**
+All sizes: 64 MB (configurable with `--memory-limit` flag)
+
+**How to use:**
+
+Simply specify the board size and the time limit will be applied automatically:
+```bash
+# Automatically uses 150ms timeout for 11x11 board
+python3 gui_main.py --board-size 11 --red-subprocess "python3 my_agent.py"
+
+# Automatically uses 250ms timeout for 19x19 board  
+python3 gui_main.py --board-size 19 --red-subprocess "python3 my_agent.py"
+
+# Override with custom timeout if needed (e.g., for testing)
+python3 gui_main.py --board-size 11 --timeout 2.0 --red-subprocess "python3 my_agent.py"
+```
+
+**Testing your agent:** Make sure your algorithm can work efficiently under different board sizes and their corresponding time/memory constraints.
 
 ---
 
